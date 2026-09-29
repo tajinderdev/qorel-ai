@@ -2,13 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
 :root {
+  /* Light mode (Glassmorphism + Teal theme) */
+  --background: #F0FDFA; /* Teal 50 */
+  --foreground: #134E4A; /* Teal 900 */
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(13, 148, 136, 0.2);
+  --glow-indigo: rgba(13, 148, 136, 0.15); /* Teal glow */
+  --glow-emerald: rgba(16, 185, 129, 0.15);
+  
+  --topic-theme: #0D9488; /* Default topic theme */
+}
+
+.dark {
+  /* Dark mode */
   --background: #08090e;
   --foreground: #f1f5f9;
   --card-bg: rgba(17, 19, 31, 0.85);
   --card-border: rgba(99, 102, 241, 0.15);
   --glow-indigo: rgba(99, 102, 241, 0.25);
   --glow-emerald: rgba(16, 185, 129, 0.25);
+  
+  --topic-theme: #6366f1; /* Default topic theme */
 }
 
 body {

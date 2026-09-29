@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { CourseWarehouseService } from '@/lib/warehouse/service';
 import LessonRunner from '@/components/lesson/LessonRunner';
+import { getAIProvider } from '@/lib/ai/factory';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -9,9 +10,18 @@ interface PageProps {
 export default async function LessonPage({ params }: PageProps) {
   const { slug } = await params;
   const topic = CourseWarehouseService.getTopicBySlug(slug);
-  const course = CourseWarehouseService.getCanonicalCourse(slug);
 
-  if (!topic || !course) {
+  if (!topic) {
+    notFound();
+  }
+
+  const ai = getAIProvider();
+  const course = await ai.generateCourseContent({
+    topicSlug: topic.slug,
+    topicTitle: topic.title,
+  });
+
+  if (!course || !course.sections) {
     notFound();
   }
 

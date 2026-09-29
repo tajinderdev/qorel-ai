@@ -131,4 +131,15 @@ export class OpenAIProvider implements AIProvider {
       return this.fallback.answerTutorQuestion(params);
     }
   }
+
+  async generateCourseContent(params: {
+    topicSlug: string;
+    topicTitle: string;
+  }): Promise<import('../types').CanonicalCourse> {
+    if (!this.apiKey) return this.fallback.generateCourseContent(params);
+    
+    // For MVP, we use the fallback's mock generation to avoid long complex JSON generation timeouts,
+    // but in production we would prompt OpenAI to build the CanonicalCourse JSON.
+    return this.fallback.generateCourseContent(params);
+  }
 }

@@ -40,6 +40,7 @@ export default function LessonRunner({ topic, sections }: LessonRunnerProps) {
   const [showExplainModal, setShowExplainModal] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showTutorChat, setShowTutorChat] = useState(true);
+  const [isPresentationMode, setIsPresentationMode] = useState(false);
 
   const activeSection = sections[activeSectionIndex] || sections[0];
   const topicCompleted = completedSections[topic.slug] || [];
@@ -50,6 +51,7 @@ export default function LessonRunner({ topic, sections }: LessonRunnerProps) {
       setActiveSectionIndex(activeSectionIndex + 1);
     } else {
       setIsCompleted(true);
+      setIsPresentationMode(false); // Stop presentation when done
     }
   };
 
@@ -57,6 +59,16 @@ export default function LessonRunner({ topic, sections }: LessonRunnerProps) {
     if (activeSectionIndex > 0) {
       setActiveSectionIndex(activeSectionIndex - 1);
     }
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      'frontend': '#3b82f6', // blue
+      'backend': '#10b981', // emerald
+      'devops': '#8b5cf6', // violet
+      'architecture': '#f59e0b', // amber
+    };
+    return colors[category?.toLowerCase()] || '#0d9488'; // fallback teal
   };
 
   const handleCopyCode = (code: string, idx: number) => {
@@ -127,45 +139,64 @@ export default function LessonRunner({ topic, sections }: LessonRunnerProps) {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div 
+      className="max-w-7xl mx-auto px-4 py-6"
+      style={{ '--topic-theme': getCategoryColor(topic.category) } as React.CSSProperties}
+    >
       {/* Top Breadcrumbs & Progress */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            <Link href="/" className="hover:text-foreground transition-colors">
+            <Link href="/dashboard" className="hover:text-foreground transition-colors">
               Topics
             </Link>
             <span>/</span>
-            <span className="text-indigo-400 font-medium">{topic.title}</span>
+            <span className="font-medium" style={{ color: 'var(--topic-theme)' }}>{topic.title}</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-indigo-400" />
+            <BookOpen className="w-5 h-5" style={{ color: 'var(--topic-theme)' }} />
             <span>{activeSection.title}</span>
           </h1>
         </div>
 
-        {/* Section Steps Navigation Indicator */}
-        <div className="flex items-center gap-2 bg-card/60 p-1.5 rounded-2xl border border-border/80">
-          {sections.map((sec, idx) => {
-            const isCurrent = idx === activeSectionIndex;
-            const isDone = topicCompleted.includes(sec.id);
-            return (
-              <button
-                key={sec.id}
-                onClick={() => setActiveSectionIndex(idx)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                  isCurrent
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                    : isDone
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'text-muted-foreground hover:text-slate-200 hover:bg-white/5'
-                }`}
-              >
-                {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : <span>{idx + 1}</span>}
-                <span className="hidden md:inline truncate max-w-[120px]">{sec.conceptKey}</span>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-4">
+          {/* Presentation Mode Toggle */}
+          <button
+            onClick={() => setIsPresentationMode(!isPresentationMode)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors border ${
+              isPresentationMode 
+                ? 'bg-teal-600 text-white border-teal-500 shadow-lg shadow-teal-500/20' 
+                : 'bg-card text-muted-foreground border-border/80 hover:text-foreground hover:border-teal-500/50'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            {isPresentationMode ? 'Presentation Active' : 'Start Presentation'}
+          </button>
+
+          {/* Section Steps Navigation Indicator */}
+          <div className="flex items-center gap-2 bg-card/60 p-1.5 rounded-2xl border border-border/80">
+            {sections.map((sec, idx) => {
+              const isCurrent = idx === activeSectionIndex;
+              const isDone = topicCompleted.includes(sec.id);
+              return (
+                <button
+                  key={sec.id}
+                  onClick={() => setActiveSectionIndex(idx)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                    isCurrent
+                      ? 'text-white shadow-md'
+                      : isDone
+                      ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20'
+                      : 'text-muted-foreground hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
+                  }`}
+                  style={isCurrent ? { backgroundColor: 'var(--topic-theme)' } : {}}
+                >
+                  {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : <span>{idx + 1}</span>}
+                  <span className="hidden md:inline truncate max-w-[120px]">{sec.conceptKey}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -177,6 +208,8 @@ export default function LessonRunner({ topic, sections }: LessonRunnerProps) {
           <AudioPlayerBar
             script={activeSection.narrationScript}
             title={activeSection.title}
+            autoPlay={isPresentationMode}
+            onComplete={() => { if (isPresentationMode) handleNextSection(); }}
           />
 
           {/* Interactive Procedural 3D/2D Canvas Visualizer */}

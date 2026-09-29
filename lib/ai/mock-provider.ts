@@ -123,4 +123,43 @@ export class MockAIProvider implements AIProvider {
       clarifyingQuestion: 'Does the distinction between -MOVED (permanent) and -ASK (temporary during slot resharding) make sense?',
     };
   }
+
+  async generateCourseContent(params: {
+    topicSlug: string;
+    topicTitle: string;
+  }): Promise<import('../types').CanonicalCourse> {
+    const { CANONICAL_COURSES } = await import('../warehouse/courses');
+    
+    // For mock, just return existing canonical course or generate a generic one
+    if (CANONICAL_COURSES[params.topicSlug]) {
+      return CANONICAL_COURSES[params.topicSlug];
+    }
+    
+    return {
+      topicSlug: params.topicSlug,
+      version: 1,
+      diagnostic: {
+        topicSlug: params.topicSlug,
+        title: `Diagnostic: ${params.topicTitle}`,
+        description: `Evaluate your knowledge on ${params.topicTitle}`,
+        questions: []
+      },
+      sections: [
+        {
+          id: `${params.topicSlug}-generated-1`,
+          title: `Introduction to ${params.topicTitle}`,
+          conceptKey: `${params.topicTitle} Basics`,
+          order: 1,
+          durationSeconds: 120,
+          narrationScript: `Welcome to the generated lesson on ${params.topicTitle}.`,
+          contentMarkdown: `# Generated content for ${params.topicTitle}\n\nThis is AI generated content.`,
+          visualSpec: {
+            type: '3d_cluster_network',
+            title: `Visualizing ${params.topicTitle}`,
+            props: {}
+          }
+        }
+      ]
+    };
+  }
 }

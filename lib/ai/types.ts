@@ -44,4 +44,9 @@ export interface AIProvider {
     learnerQuestion: string;
     masteryLevel: number;
   }): Promise<TutorResponseResult>;
+
+  generateCourseContent(params: {
+    topicSlug: string;
+    topicTitle: string;
+  }): Promise<import('../types').CanonicalCourse>;
 }

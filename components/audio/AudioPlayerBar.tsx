@@ -8,9 +8,11 @@ import { useLearnerStore } from '@/lib/store/use-learner-store';
 interface AudioPlayerBarProps {
   script: string;
   title: string;
+  onComplete?: () => void;
+  autoPlay?: boolean;
 }
 
-export default function AudioPlayerBar({ script, title }: AudioPlayerBarProps) {
+export default function AudioPlayerBar({ script, title, onComplete, autoPlay }: AudioPlayerBarProps) {
   const { isAudioPlaying, setAudioPlaying, audioRate, setAudioRate, currentCaption, setCurrentCaption } =
     useLearnerStore();
   const [isMuted, setIsMuted] = useState(false);
@@ -18,11 +20,18 @@ export default function AudioPlayerBar({ script, title }: AudioPlayerBarProps) {
   useEffect(() => {
     // When section changes, update caption to preview
     setCurrentCaption(script.slice(0, 140) + (script.length > 140 ? '...' : ''));
+    
+    if (autoPlay) {
+      setTimeout(() => {
+        if (!isAudioPlaying) handleTogglePlay();
+      }, 500);
+    }
+    
     return () => {
       SpeechEngine.getInstance().stop();
       setAudioPlaying(false);
     };
-  }, [script, setCurrentCaption, setAudioPlaying]);
+  }, [script, setCurrentCaption, setAudioPlaying, autoPlay]);
 
   const handleTogglePlay = () => {
     const engine = SpeechEngine.getInstance();
@@ -36,6 +45,7 @@ export default function AudioPlayerBar({ script, title }: AudioPlayerBarProps) {
         onEnd: () => {
           setAudioPlaying(false);
           setCurrentCaption('Narration completed.');
+          if (onComplete) onComplete();
         },
         onError: () => setAudioPlaying(false),
         onBoundary: (charIndex, text) => {
